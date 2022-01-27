@@ -1,7 +1,7 @@
 # Office Suite Documents and Git Version Control
 
 [Git][gitbook] is a distributed version control system designed by
-Linus Torvald to track changes to the source code (predominantly
+Linus Torvalds to track changes to the source code (predominantly
 [C][c]). Since these files are plain text generally written with one
 statement per line, the natural way to track changes is *one line*,
 i.e., everything you type up until you press <kbd>Enter</kbd>.
@@ -332,6 +332,149 @@ I'll revert the document to keep the incomplete version known to Git:
 ```shell
 git checkout -- microsoft-word.docx
 ```
+
+## Microsoft Excel: XLSX
+
+The file [microsoft-excel.xlsx](microsoft-excel.xlsx) contains a copy
+of the top-level README text, with one paragraph per cell.
+
+### Print the Excel document in the terminal
+
+The Microsoft Excel document is not plain text, which we can verify by
+attempting to print it out in raw form. I recommend using `head` to
+limit the number of lines it will print:
+
+* Linux or macOS shell:
+
+  ```shell
+  head -n 2 microsoft-excel.xlsx
+  ```
+
+* Windows PowerShell:
+
+  ```powershell
+  Get-Content -Head 2 .\microsoft-excel.xlsx
+  ```
+
+* Output:
+
+  ```output
+  P!LA[Content_Types].xml (MN0H!%nY t*Q`Icձ-ϴ҂ڍ-Ǟ<:-!b 2pJ6}oEV;(Pˋt3vX(Iu
+                                                                          p)eɠ깚
+  QQ                                                                            ndz
+    K?oH"X`U
+  ׋(0DP[lSs$crBWR'2M֠M;E2M3w3	J9o7lC<%Kǜ[ARwߵw2''P!U0#L
+                                                          _rels/.rels (MO0
+  ?9Lҙsbgٮ|l!USh9ibr:"y_dlD|-NR"42G%Z4˝y7	ëɂP!jxl/workbook.xmlUmo0>iw     HݐBKwAH!T~I$'TG~<!4;#wqu*&rFqvGJy(v*K#FD.W	=ZMYbBS7ϛז
+  ```
+
+### Count the lines
+
+The original README document had four paragraphs with each line
+wrapped around the 70th character, creating 25 lines in total. The
+Excel document has five lines (one for the header and one per
+paragraph), but how many "lines" are in the file?
+
+```shell
+wc -l microsoft-excel.xlsx
+```
+
+```output
+26
+```
+
+Comparing this to the `cat` output above, the line breaks do not seem
+to correspond to anything meaningful.
+
+### Hexadecimal view of the Excel document
+
+For a closer look, you can use a hexadecimal tool like `xxd`
+(pre-installed for Linux and macOS, [available for Windows][xxd]) to
+dump the raw data to your terminal, rather than having your shell
+attempt to convert the data to text:
+
+```shell
+xxd microsoft-excel.xlsx | head
+```
+
+```output
+00000000: 504b 0304 1400 0600 0800 0000 2100 4c41  PK..........!.LA
+00000010: 0211 5f01 0000 9004 0000 1300 0802 5b43  .._...........[C
+00000020: 6f6e 7465 6e74 5f54 7970 6573 5d2e 786d  ontent_Types].xm
+00000030: 6c20 a204 0228 a000 0200 0000 0000 0000  l ...(..........
+00000040: 0000 0000 0000 0000 0000 0000 0000 0000  ................
+00000050: 0000 0000 0000 0000 0000 0000 0000 0000  ................
+00000060: 0000 0000 0000 0000 0000 0000 0000 0000  ................
+00000070: 0000 0000 0000 0000 0000 0000 0000 0000  ................
+00000080: 0000 0000 0000 0000 0000 0000 0000 0000  ................
+00000090: 0000 0000 0000 0000 0000 0000 0000 0000  ................
+```
+
+As we had in the Word document, those first 8 characters (`50 4b 30
+34`) are the [magic number][magic] for a [ZIP archive][zip]. Using
+the `unzip` tool to list its contents, we see
+
+```shell
+unzip -l microsoft-excel.xlsx
+```
+
+```output
+Archive:  microsoft-excel.xlsx
+  Length      Date    Time    Name
+---------  ---------- -----   ----
+     1168  1980-01-01 00:00   [Content_Types].xml
+      588  1980-01-01 00:00   _rels/.rels
+     1687  1980-01-01 00:00   xl/workbook.xml
+      698  1980-01-01 00:00   xl/_rels/workbook.xml.rels
+     1258  1980-01-01 00:00   xl/worksheets/sheet1.xml
+     8390  1980-01-01 00:00   xl/theme/theme1.xml
+     1597  1980-01-01 00:00   xl/styles.xml
+     1476  1980-01-01 00:00   xl/sharedStrings.xml
+      790  1980-01-01 00:00   docProps/core.xml
+      394  1980-01-01 00:00   docProps/app.xml
+---------                     -------
+    18046                     10 files
+```
+
+The archive compresses 10 files from 17 kB down to 9 kB; the dates
+were apparently never set. This Excel archive appears to share some
+boilerplate with the Word boilerplate we saw before. Instead of
+`data/document.xml`, our cells are stored under
+`xl/worksheets/sheet1.xml`, which we can extract for inspection:
+
+```shell
+unzip microsoft-excel.xlsx xl/worksheets/sheet1.xml
+```
+
+```shell
+cat xl/worksheets/sheet1.xml
+```
+
+```output
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="x14ac xr xr2 xr3" xmlns:x14ac="http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac" xmlns:xr="http://schemas.microsoft.com/office/spreadsheetml/2014/revision" xmlns:xr2="http://schemas.microsoft.com/office/spreadsheetml/2015/revision2" xmlns:xr3="http://schemas.microsoft.com/office/spreadsheetml/2016/revision3" «truncated to prevent bleeding from the eyes»
+```
+
+The whole sheet is encoded as two lines. Unfortunately, I see nothing
+recognizable: this is not the file storing what was typed. 
+
+```shell
+unzip microsoft-excel.xlsx xl/sharedStrings.xml
+```
+
+```shell
+cat xl/sharedStrings.xml
+```
+
+```output
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<sst xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" count="5" uniqueCount="5"><si><t>Office Suite Documents and Git Version Control</t></si><si><t>Git is a distributed version control system designed by Linus Torvald to track changes to the source code (predominantly C). Since these files are plain text generally written with one statement per line, the natural way to track changes is one line, i.e., everything you type up until you press Enter.</t></si><si><t>Office suites (Microsoft, Google, Corel, OpenOffice, LibreOffice) are neither source code nor plain text. Modern office documents are structured collections of objects, typically organized as XML stanzas using plain text (ASCII or Unicode) for headings and metadata, with the text, images, tables, links, and data that you type, paste, and compute stored as binary blobs generated from an often-proprietary encoding.</t></si><si><t>Practically speaking, this means that although you can use Git to track changes in your Word documents (et cetera), it will not be efficient: every time you change a character, Git sees it as a change to the entire binary blob (which contains no line-endings inside). To track the change, Git stores the entire blob, even if only one single character was changed in the office software.</t></si><si><t>The purpose of this repository is to test and interrogate this as an educational tool.</t></si></sst>
+```
+
+There's our text. Like the Word document, the internal representation
+is also a single line; even if Git could see this far into the ZIP
+archive, it would still have to save a copy of this entire file every
+time something changed.
 
 <!-- links -->
 
