@@ -1,4 +1,4 @@
-# Office Suite Demo for Git
+# Office Suite Documents and Git Version Control
 
 [Git][gitbook] is a distributed version control system designed by
 Linus Torvald to track changes to the source code (predominantly
@@ -22,7 +22,15 @@ To track the change, Git stores the *entire blob*, even if only one
 single character was changed in the office software.
 
 The purpose of this repository is to test and interrogate this as an
-educational tool.
+educational tool. The intended take-away is that, while Git can and
+should be used to track versions of and changes to your work, the
+proprietary formats used by typical office suites are incompatible
+with the way Git identifies changes. The best thing to do is adopt an
+open, plain-text format (such as Markdown or LaTeX for documents, CSV
+or TSV for tabular data) that is written one line at a time. The
+alternative is to use the office tool's built-in features to track
+changes, and to keep point-in-time backups of those files somewhere
+else in case the binary file becomes corrupted.
 
 ## Microsoft Word: DOCX
 
@@ -189,7 +197,7 @@ cat word/document.xml
 Inspecting the output, I am struck by two things:
 
 1. I recognize some lines from README in the middle of the text dump!
-   This is indeed the right file to dig inspect.
+   This is indeed the right file to inspect.
 2. There are no line endings. While XML is a structured markup
    language that supports tidy organization by breaking lines where
    tags end (`<tag> ... text ... </tag>`<kbd>Enter</kbd>), this file
