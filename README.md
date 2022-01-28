@@ -456,7 +456,7 @@ cat xl/worksheets/sheet1.xml
 ```
 
 The whole sheet is encoded as two lines. Unfortunately, I see nothing
-recognizable: this is not the file storing what was typed. 
+recognizable: this is not the file storing what was typed.
 
 ```shell
 unzip microsoft-excel.xlsx xl/sharedStrings.xml
@@ -471,10 +471,129 @@ cat xl/sharedStrings.xml
 <sst xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" count="5" uniqueCount="5"><si><t>Office Suite Documents and Git Version Control</t></si><si><t>Git is a distributed version control system designed by Linus Torvald to track changes to the source code (predominantly C). Since these files are plain text generally written with one statement per line, the natural way to track changes is one line, i.e., everything you type up until you press Enter.</t></si><si><t>Office suites (Microsoft, Google, Corel, OpenOffice, LibreOffice) are neither source code nor plain text. Modern office documents are structured collections of objects, typically organized as XML stanzas using plain text (ASCII or Unicode) for headings and metadata, with the text, images, tables, links, and data that you type, paste, and compute stored as binary blobs generated from an often-proprietary encoding.</t></si><si><t>Practically speaking, this means that although you can use Git to track changes in your Word documents (et cetera), it will not be efficient: every time you change a character, Git sees it as a change to the entire binary blob (which contains no line-endings inside). To track the change, Git stores the entire blob, even if only one single character was changed in the office software.</t></si><si><t>The purpose of this repository is to test and interrogate this as an educational tool.</t></si></sst>
 ```
 
-There's our text. Like the Word document, the internal representation
-is also a single line; even if Git could see this far into the ZIP
-archive, it would still have to save a copy of this entire file every
-time something changed.
+There's our text. Like the Word document, the internal representation is also a
+single line; even if Git could see this far into the ZIP archive, it would
+still have to save a copy of this entire file every time something changed.
+
+## LibreOffice Writer: ODT
+
+Like Microsoft, the LibreOffice suite uses ZIP-compressed XML to store your
+documents. Take a look at the hex dump:
+
+```shell
+xxd libre-writer.odt | head
+```
+
+```output
+00000000: 504b 0304 1400 0008 0000 2a75 3c54 5ec6  PK........*u<T^.
+00000010: 320c 2700 0000 2700 0000 0800 0000 6d69  2.'...'.......mi
+00000020: 6d65 7479 7065 6170 706c 6963 6174 696f  metypeapplicatio
+00000030: 6e2f 766e 642e 6f61 7369 732e 6f70 656e  n/vnd.oasis.open
+00000040: 646f 6375 6d65 6e74 2e74 6578 7450 4b03  document.textPK.
+00000050: 0414 0000 0800 002a 753c 5400 0000 0000  .......*u<T.....
+00000060: 0000 0000 0000 001f 0000 0043 6f6e 6669  ...........Confi
+00000070: 6775 7261 7469 6f6e 7332 2f69 6d61 6765  gurations2/image
+00000080: 732f 4269 746d 6170 732f 504b 0304 1400  s/Bitmaps/PK....
+00000090: 0008 0000 2a75 3c54 0000 0000 0000 0000  ....*u<T........
+```
+
+Here again we see the `50 4b 03 04` magic number, and the ZIP file contains
+
+```shell
+unzip -l libre-writer.odt
+```
+
+```output
+Archive:  libre-writer.odt
+  Length      Date    Time    Name
+---------  ---------- -----   ----
+       39  2022-01-28 14:41   mimetype
+        0  2022-01-28 14:41   Configurations2/images/Bitmaps/
+        0  2022-01-28 14:41   Configurations2/accelerator/
+        0  2022-01-28 14:41   Configurations2/toolpanel/
+        0  2022-01-28 14:41   Configurations2/progressbar/
+        0  2022-01-28 14:41   Configurations2/statusbar/
+        0  2022-01-28 14:41   Configurations2/toolbar/
+        0  2022-01-28 14:41   Configurations2/floater/
+        0  2022-01-28 14:41   Configurations2/popupmenu/
+        0  2022-01-28 14:41   Configurations2/menubar/
+      899  2022-01-28 14:41   manifest.rdf
+      979  2022-01-28 14:41   meta.xml
+    12281  2022-01-28 14:41   settings.xml
+     7262  2022-01-28 14:41   Thumbnails/thumbnail.png
+    14320  2022-01-28 14:41   styles.xml
+     6883  2022-01-28 14:41   content.xml
+     1061  2022-01-28 14:41   META-INF/manifest.xml
+---------                     -------
+    43724                     17 files
+```
+
+Please feel free to dig in, but Git is unable to reasonably keep track of
+changes to this file.
+
+## LibreOffice Writer: FODT
+
+LibreOffice provides *flat* or *uncompressed* XML-based filetypes as an
+alternative. Specifically, flat ODT stores the file in plain text:
+
+```shell
+xxd libre-writer.fodt | head
+```
+
+```output
+00000000: 3c3f 786d 6c20 7665 7273 696f 6e3d 2231  <?xml version="1
+00000010: 2e30 2220 656e 636f 6469 6e67 3d22 5554  .0" encoding="UT
+00000020: 462d 3822 3f3e 0a0a 3c6f 6666 6963 653a  F-8"?>..<office:
+00000030: 646f 6375 6d65 6e74 2078 6d6c 6e73 3a6f  document xmlns:o
+00000040: 6666 6963 656f 6f6f 3d22 6874 7470 3a2f  fficeooo="http:/
+00000050: 2f6f 7065 6e6f 6666 6963 652e 6f72 672f  /openoffice.org/
+00000060: 3230 3039 2f6f 6666 6963 6522 2078 6d6c  2009/office" xml
+00000070: 6e73 3a63 7373 3374 3d22 6874 7470 3a2f  ns:css3t="http:/
+00000080: 2f77 7777 2e77 332e 6f72 672f 5452 2f63  /www.w3.org/TR/c
+00000090: 7373 332d 7465 7874 2f22 2078 6d6c 6e73  ss3-text/" xmlns
+```
+
+The magic number `3c 3f 78 6d` represents an XML file. It is also promising
+that the ASCII encoding in the final column shows no missing or unprintable
+characters. Using `cat`, we can see the raw contents of the file:
+
+```shell
+cat libre-writer.fodt
+```
+
+```output
+<?xml version="1.0" encoding="UTF-8"?>
+
+<office:document xmlns:officeooo="http://openoffice.org/2009/office" xmlns:css3t="http://www.w3.org/TR/css3-text/" xmlns:grddl="http://www.w3.org/2003/g/data-view#" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:formx="urn:openoffice:names:experimental:ooxml-odf-interop:xmlns:form:1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:chart="urn:oasis:names:tc:opendocument:xmlns:chart:1.0" xmlns:svg="urn:oasis:names:tc:opendocument:xmlns:svg-compatible:1.0" xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text:1.0" xmlns:oooc="http://openoffice.org/2004/calc" xmlns:style="urn:oasis:names:tc:opendocument:xmlns:style:1.0" xmlns:ooow="http://openoffice.org/2004/writer" xmlns:meta="urn:oasis:names:tc:opendocument:xmlns:meta:1.0" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:rpt="http://openoffice.org/2005/report" xmlns:draw="urn:oasis:names:tc:opendocument:xmlns:drawing:1.0" xmlns:config="urn:oasis:names:tc:opendocument:xmlns:config:1.0" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:fo="urn:oasis:names:tc:opendocument:xmlns:xsl-fo-compatible:1.0" xmlns:ooo="http://openoffice.org/2004/office" xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0" xmlns:dr3d="urn:oasis:names:tc:opendocument:xmlns:dr3d:1.0" xmlns:table="urn:oasis:names:tc:opendocument:xmlns:table:1.0" xmlns:number="urn:oasis:names:tc:opendocument:xmlns:datastyle:1.0" xmlns:of="urn:oasis:names:tc:opendocument:xmlns:of:1.2" xmlns:calcext="urn:org:documentfoundation:names:experimental:calc:xmlns:calcext:1.0" xmlns:tableooo="http://openoffice.org/2009/table" xmlns:drawooo="http://openoffice.org/2010/draw" xmlns:loext="urn:org:documentfoundation:names:experimental:office:xmlns:loext:1.0" xmlns:dom="http://www.w3.org/2001/xml-events" xmlns:field="urn:openoffice:names:experimental:ooo-ms-interop:xmlns:field:1.0" xmlns:math="http://www.w3.org/1998/Math/MathML" xmlns:form="urn:oasis:names:tc:opendocument:xmlns:form:1.0" xmlns:script="urn:oasis:names:tc:opendocument:xmlns:script:1.0" xmlns:xforms="http://www.w3.org/2002/xforms" office:version="1.3" office:mimetype="application/vnd.oasis.opendocument.text">
+ <office:meta><meta:creation-date>2022-01-28T09:35:22.101790867</meta:creation-date><dc:date>2022-01-28T09:41:21.185108832</dc:date><meta:editing-duration>PT5M59S</meta:editing-duration><meta:editing-cycles>1</meta:editing-cycles><meta:document-statistic meta:table-count="0" meta:image-count="0" meta:object-count="0" meta:page-count="1" meta:paragraph-count="5" meta:word-count="200" meta:character-count="1236" meta:non-whitespace-character-count="1041"/><meta:generator>LibreOffice/7.0.4.2$Linux_X86_64 LibreOffice_project/00$Build-2</meta:generator></office:meta>
+ <office:settings>
+«truncated for concision»
+```
+
+Even more promising: we have separate lines! In fact, this file has 293 lines,
+and using `tail`, we see all of our content at the end of the file:
+
+```shell
+tail libre-writer.fodt
+```
+
+```output
+   <text:p text:style-name="Standard"><text:a xlink:type="simple" xlink:href="https://git-scm.com/book/en/v2" text:style-name="Internet_20_link" text:visited-style-name="Visited_20_Internet_20_Link">Git</text:a> is a distributed version control system designed by Linus Torvald to track changes to the source code (predominantly <text:a xlink:type="simple" xlink:href="https://en.wikipedia.org/wiki/C_(programming_language)" text:style-name="Internet_20_link" text:visited-style-name="Visited_20_Internet_20_Link">C</text:a>). Since these files are plain text generally written with one statement per line, the natural way to track changes is <text:span text:style-name="T1">one line</text:span>, i.e., everything you type up until you press <text:span text:style-name="T2">Enter</text:span>.</text:p>
+   <text:p text:style-name="Standard"/>
+   <text:p text:style-name="Standard">Office suites (Microsoft, Google, Corel, OpenOffice, LibreOffice) are neither source code nor plain text. Modern office documents are structured collections of objects, typically organized as XML stanzas using plain text (<text:a xlink:type="simple" xlink:href="https://en.wikipedia.org/wiki/ASCII" text:style-name="Internet_20_link" text:visited-style-name="Visited_20_Internet_20_Link">ASCII</text:a> or <text:a xlink:type="simple" xlink:href="https://en.wikipedia.org/wiki/UTF-8" text:style-name="Internet_20_link" text:visited-style-name="Visited_20_Internet_20_Link">Unicode</text:a>) for headings and metadata, with the text, images, tables, links, and data that you type, paste, and compute stored as binary blobs generated from an often-proprietary encoding.</text:p>
+   <text:p text:style-name="Standard"/>
+   <text:p text:style-name="Standard">Practically speaking, this means that although you can use Git to track changes in your Word documents (<text:span text:style-name="T1">et cetera</text:span>), it will not be efficient: every time you change a character, Git sees it as a change to the entire binary blob (which contains no line-endings inside). To track the change, Git stores the <text:span text:style-name="T1">entire blob</text:span>, even if only one single character was changed in the office software.</text:p>
+   <text:p text:style-name="Standard"/>
+   <text:p text:style-name="Standard">The purpose of this repository is to test and interrogate this as an educational tool.</text:p>
+  </office:text>
+ </office:body>
+</office:document>
+```
+
+While one "line" in this file represents an entire paragraph of text, Git can
+still read and track changes with only modest duplication of effort. If plain
+text (like Markdown) is not an option, the FODT document type is the next best
+thing.
 
 <!-- links -->
 
