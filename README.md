@@ -27,10 +27,12 @@ should be used to track versions of and changes to your work, the
 proprietary formats used by typical office suites are incompatible
 with the way Git identifies changes. The best thing to do is adopt an
 open, plain-text format (such as Markdown or LaTeX for documents, CSV
-or TSV for tabular data) that is written one line at a time. The
-alternative is to use the office tool's built-in features to track
-changes, and to keep point-in-time backups of those files somewhere
-else in case the binary file becomes corrupted.
+or TSV for tabular data) that is written one line at a time. If you
+must use an office suite tool, **consider adopting the *flat* file
+types defined by the Open Document Standard** and implemented in
+LibreOffice and OpenOffice. If you must use the default ZIP-archived
+XML filetypes, use your office suite's built-in features to track
+changes: Git is not suited for this particular file.
 
 ## Microsoft Word: DOCX
 
@@ -594,6 +596,84 @@ While one "line" in this file represents an entire paragraph of text, Git can
 still read and track changes with only modest duplication of effort. If plain
 text (like Markdown) is not an option, the FODT document type is the next best
 thing.
+
+## LibreOffice Calc: FODS
+
+LibreOffice Calc provides a flat XML-based spreadsheet type: FODS. As above,
+look at its magic number:
+
+```shell
+xxd libre-calc.fods | head
+```
+
+```output
+00000000: 3c3f 786d 6c20 7665 7273 696f 6e3d 2231  <?xml version="1
+00000010: 2e30 2220 656e 636f 6469 6e67 3d22 5554  .0" encoding="UT
+00000020: 462d 3822 3f3e 0a0a 3c6f 6666 6963 653a  F-8"?>..<office:
+00000030: 646f 6375 6d65 6e74 2078 6d6c 6e73 3a70  document xmlns:p
+00000040: 7265 7365 6e74 6174 696f 6e3d 2275 726e  resentation="urn
+00000050: 3a6f 6173 6973 3a6e 616d 6573 3a74 633a  :oasis:names:tc:
+00000060: 6f70 656e 646f 6375 6d65 6e74 3a78 6d6c  opendocument:xml
+00000070: 6e73 3a70 7265 7365 6e74 6174 696f 6e3a  ns:presentation:
+00000080: 312e 3022 2078 6d6c 6e73 3a63 7373 3374  1.0" xmlns:css3t
+00000090: 3d22 6874 7470 3a2f 2f77 7777 2e77 332e  ="http://www.w3.
+```
+
+Cool! Using `tail` again, near the bottom, we find
+
+```output
+<office:spreadsheet>
+   <table:calculation-settings table:automatic-find-labels="false" table:use-regular-expressions="false" table:use-wildcards="true"/>
+   <table:table table:name="Sheet1" table:style-name="ta1">
+    <table:table-column table:style-name="co1" table:number-columns-repeated="2" table:default-cell-style-name="Default"/>
+    <table:table-row table:style-name="ro1">
+     <table:table-cell office:value-type="string" calcext:value-type="string">
+      <text:p>Office Suite Documents and Git Version Control</text:p>
+     </table:table-cell>
+     <table:table-cell/>
+    </table:table-row>
+    <table:table-row table:style-name="ro1">
+     <table:table-cell office:value-type="string" calcext:value-type="string">
+      <text:p>Git is a distributed version control system designed by Linus Torvald to track changes to the source code (predominantly C). Since these files are plain text generally written with one statement per line, the natural way to track changes is one line, i.e., everything you type up until you press Enter.</text:p>
+     </table:table-cell>
+     <table:table-cell/>
+    </table:table-row>
+    <table:table-row table:style-name="ro1">
+     <table:table-cell office:value-type="string" calcext:value-type="string">
+      <text:p>Office suites (Microsoft, Google, Corel, OpenOffice, LibreOffice) are neither source code nor plain text. Modern office documents are structured collections of objects, typically organized as XML stanzas using plain text (ASCII or Unicode) for headings and metadata, with the text, images, tables, links, and data that you type, paste, and compute stored as binary blobs generated from an often-proprietary encoding.</text:p>
+     </table:table-cell>
+     <table:table-cell/>
+    </table:table-row>
+    <table:table-row table:style-name="ro1">
+     <table:table-cell office:value-type="string" calcext:value-type="string">
+      <text:p>Practically speaking, this means that although you can use Git to track changes in your Word documents (et cetera), it will not be efficient: every time you change a character, Git sees it as a change to the entire binary blob (which contains no line-endings inside). To track the change, Git stores the entire blob, even if only one single character was changed in the office software.</text:p>
+     </table:table-cell>
+     <table:table-cell/>
+    </table:table-row>
+    <table:table-row table:style-name="ro1">
+     <table:table-cell office:value-type="string" calcext:value-type="string">
+      <text:p>The purpose of this repository is to test and interrogate this as an educational tool.</text:p>
+     </table:table-cell>
+     <table:table-cell/>
+    </table:table-row>
+    <table:table-row table:style-name="ro1">
+     <table:table-cell table:number-columns-repeated="2"/>
+    </table:table-row>
+    <table:table-row table:style-name="ro1">
+     <table:table-cell table:style-name="ce1" office:value-type="float" office:value="1" calcext:value-type="float">
+      <text:p>1 in</text:p>
+     </table:table-cell>
+     <table:table-cell table:style-name="ce2" table:formula="of:=25.4*[.A7]" office:value-type="float" office:value="25.4" calcext:value-type="float">
+      <text:p>25.4 mm</text:p>
+     </table:table-cell>
+    </table:table-row>
+   </table:table>
+   <table:named-expressions/>
+  </office:spreadsheet>
+```
+
+Just like the flat document file, this flat spreadsheet file contains plain
+text split into separate lines, and can be reasonably handled by Git. Delightful.
 
 <!-- links -->
 
